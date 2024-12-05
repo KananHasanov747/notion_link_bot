@@ -51,7 +51,7 @@ async def main():
     bot = Bot(
         token=config.BOT_TOKEN,
         session=session,
-        default=DefaultBotProperties(parse_mode=ParseMode.HTML)
+        default=DefaultBotProperties(parse_mode=ParseMode.HTML),
     )
 
     storage = MemoryStorage()
