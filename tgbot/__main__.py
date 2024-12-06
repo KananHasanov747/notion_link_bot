@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import os
 
 import betterlogging as bl
 import orjson
@@ -11,6 +12,8 @@ from aiogram.fsm.storage.memory import MemoryStorage
 
 from tgbot import handlers
 from tgbot.data import config
+from tgbot.models import Base
+from tgbot.database import engine
 
 
 def setup_logging():
@@ -42,8 +45,15 @@ async def aiogram_on_shutdown_polling(dispatcher: Dispatcher, bot: Bot) -> None:
     await dispatcher.storage.close()
 
 
+async def setup_database():
+    async with engine.begin() as conn:
+        if os.path.exists("db.sqlite3"):
+            await conn.run_sync(Base.metadata.create_all)
+
+
 async def main():
     setup_logging()
+    await setup_database()
     session = AiohttpSession(
         json_loads=orjson.loads,
     )
