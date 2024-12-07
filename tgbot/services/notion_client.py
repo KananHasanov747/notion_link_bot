@@ -10,13 +10,13 @@ class NotionService:
     async def add_link(
         self, database_id: str, url: str, title: str = "", category: str = ""
     ):
-        properties = {"URL": {"url": url}}
+        properties = {"url": {"url": url}}
 
         if title:
-            properties["Title"] = {"title": [{"text": {"content": title}}]}
+            properties["title"] = {"title": [{"text": {"content": title}}]}
 
         if category:
-            properties["Category"] = {"select": {"name": category}}
+            properties["category"] = {"select": {"name": category}}
 
         # Creating a new page in the database
         response = await self.client.pages.create(
