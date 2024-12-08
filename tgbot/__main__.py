@@ -10,8 +10,9 @@ from aiogram.client.session.aiohttp import AiohttpSession
 from aiogram.enums import ParseMode
 from aiogram.fsm.storage.memory import MemoryStorage
 
-from tgbot import handlers
+from tgbot import handlers, states
 from tgbot.data import config
+from tgbot.handlers.commands import set_commands
 from tgbot.models import Base
 from tgbot.database import engine
 
@@ -23,6 +24,10 @@ def setup_logging():
     logger.info("Starting bot")
 
 
+def setup_states(dp: Dispatcher) -> None:
+    dp.include_router(states.setup())
+
+
 def setup_handlers(dp: Dispatcher) -> None:
     dp.include_router(handlers.setup())
 
@@ -32,6 +37,7 @@ def setup_middlewares(dp: Dispatcher) -> None:
 
 
 async def setup_aiogram(dp: Dispatcher) -> None:
+    setup_states(dp)
     setup_handlers(dp)
     setup_middlewares(dp)
 
@@ -54,6 +60,7 @@ async def setup_database():
 async def main():
     setup_logging()
     await setup_database()
+
     session = AiohttpSession(
         json_loads=orjson.loads,
     )
@@ -63,6 +70,8 @@ async def main():
         session=session,
         default=DefaultBotProperties(parse_mode=ParseMode.HTML),
     )
+
+    await set_commands(bot)
 
     storage = MemoryStorage()
 
