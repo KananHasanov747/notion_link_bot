@@ -1,3 +1,4 @@
+from datetime import datetime
 from notion_client import AsyncClient
 from tgbot.database import session
 from tgbot.models import Link
@@ -8,7 +9,12 @@ class NotionService:
         self.client = AsyncClient(auth=notion_token)
 
     async def add_link(
-        self, database_id: str, url: str, title: str = "", category: str = ""
+        self,
+        database_id: str,
+        url: str,
+        title: str = "",
+        category: str = "",
+        source="",
     ):
         properties = {"url": {"url": url}}
 
@@ -24,7 +30,14 @@ class NotionService:
         )
 
         session.add(
-            Link(url=url, title=title, category=category, database_id=database_id)
+            Link(
+                url=url,
+                title=title,
+                category=category,
+                database_id=database_id,
+                source=source,
+                timestamp=datetime.now(),
+            )
         )
 
         await session.commit()

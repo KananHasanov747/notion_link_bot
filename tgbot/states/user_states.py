@@ -9,6 +9,7 @@ from tgbot.database import session
 from tgbot.models import User
 from tgbot.keyboards import links_keyboard, start_keyboard
 from tgbot.utils import user_exists
+from tgbot.services.source_detection import detect_forward_source
 
 
 router = Router(name=__name__)
@@ -18,6 +19,7 @@ class UserState(StatesGroup):
     workspace_id = State()
     database_id = State()
     links = State()
+    sources = State()
 
 
 # Process to add workspace id from the message
@@ -76,23 +78,22 @@ async def process_add_link(message: Message, state: FSMContext):
         )
         return
 
-    # Retrieve existing links from the state or initialize a new list
-    data = await state.get_data()
-    links = data.get("links", [])
+    # Extract links from the text or forwarded message
+    links = re.findall(r"(https?://[^\s]+)", message.text)
+    source = await detect_forward_source(message)
 
-    # checks if links is empty or not for loop
     if not links:
-        links = re.findall(
-            r"(https?://[^\s]+)", message.text
-        )  # extracts links using regexp
+        await message.answer("Не удалось найти ссылки. Попробуйте снова.")
+        return
 
-        # if links are not found from message
-        if not links:
-            await message.answer("Не удалось найти ссылки. Попробуйте снова.")
-            return
-
-        await state.update_data(links=links)  # store links in the state for reference
+    # Save links and source in the state
+    data = await state.get_data()
+    saved_links = data.get("links", [])
+    saved_sources = data.get("sources", [])
+    saved_links.extend(links)
+    saved_sources.extend([source] * len(links))  # Save the source for each link
+    await state.update_data(links=saved_links, sources=saved_sources)
 
     await message.answer(
-        "Выберите ссылку для сохранения:", reply_markup=links_keyboard(links)
+        "Выберите ссылку для сохранения:", reply_markup=links_keyboard(saved_links)
     )

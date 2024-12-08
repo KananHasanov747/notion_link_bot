@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Integer, ForeignKey, Text
+from datetime import datetime
+from sqlalchemy import Column, DateTime, Integer, ForeignKey, Text
 from sqlalchemy.ext.asyncio import AsyncAttrs
 from sqlalchemy.orm import DeclarativeBase
 
@@ -25,6 +26,8 @@ class Link(Base):
     url = Column(Text, nullable=False)
     title = Column(Text)
     category = Column(Text)
+    source = Column(Text)
+    timestamp = Column(DateTime, nullable=False, default=datetime.utcnow)
     database_id = Column(
         Text, ForeignKey("users.database_id", ondelete="CASCADE"), nullable=False
     )

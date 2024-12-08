@@ -37,25 +37,23 @@ async def token_callback_handler(call: types.CallbackQuery, state: FSMContext):
 
 @router.callback_query(F.data.startswith("save_link_"))
 async def save_link_callback_handler(call: types.CallbackQuery, state: FSMContext):
-    # Retrieve the user from the database
     user = await user_exists(call)
-
-    # Extract the link index from the callback data
     link_index = int(call.data.replace("save_link_", ""))
 
-    # Retrieve the list of links from the state
     data = await state.get_data()
     links = data.get("links", [])
+    sources = data.get("sources", [])
 
-    if not links or link_index >= len(links):
+    if link_index >= len(links):
         await call.answer("Ошибка: неверный индекс ссылки.", show_alert=True)
         return
 
-    # Get and remove the selected link
+    # Get and remove the selected link and source
     selected_link = links.pop(link_index)
+    selected_source = sources.pop(link_index)
 
     # Update the state
-    await state.update_data(links=links)
+    await state.update_data(links=links, sources=sources)
 
     # Save the selected link
     async with ChatActionSender.typing(
@@ -72,10 +70,10 @@ async def save_link_callback_handler(call: types.CallbackQuery, state: FSMContex
                 url=selected_link,
                 title=title,
                 category="",
+                source=selected_source or "",
             )
 
-            await call.answer("Ссылка успешно сохранена!")
-            await call.message.edit_text(f"Ссылка '{selected_link}' успешно добавлена!")
+            await call.message.answer(f"Ссылка '{selected_link}' успешно добавлена!")
         except Exception as e:
             await call.answer("Ошибка при сохранении ссылки.", show_alert=True)
             raise e
@@ -83,7 +81,7 @@ async def save_link_callback_handler(call: types.CallbackQuery, state: FSMContex
     # Continue the loop or end it if no links are left
     if links:
         await call.message.answer(
-            "Выберите следующую ссылку для сохранения или нажмите «Отмена»:",
+            "Выберите другие ссылки для сохранения или нажмите «Отмена»:",
             reply_markup=links_keyboard(links),
         )
     else:
