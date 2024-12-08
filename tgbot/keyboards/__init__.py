@@ -1,59 +1,58 @@
+from typing import List
 from aiogram.types import (
     KeyboardButton,
     ReplyKeyboardMarkup,
     InlineKeyboardButton,
     InlineKeyboardMarkup,
 )
+from tgbot.models import User
 
 
-def start_keyboard():
+def cancel_keyboard():
+    kb_list = [[KeyboardButton(text="Отмена")]]
+
+    return ReplyKeyboardMarkup(keyboard=kb_list, resize_keyboard=True)
+
+
+async def start_keyboard(user: User | None):
     kb_list = [
-        [
-            KeyboardButton(text="Изменить рабочую область"),
-            KeyboardButton(text="Изменить базу данных"),
-        ],
-        [KeyboardButton(text="Добавить ссылку")],
+        [KeyboardButton(text="Добавить ссылки")],
     ]
 
-    keyboard = ReplyKeyboardMarkup(
+    # checks if user is recorded in database with tokens
+    if user:
+        kb_list.append(
+            [
+                KeyboardButton(text="Изменить токены"),
+            ]
+        )
+
+    return ReplyKeyboardMarkup(
         keyboard=kb_list,
         resize_keyboard=True,
         one_time_keyboard=True,
         input_field_placeholder="Воспользуйтесь меню:",
     )
 
-    return keyboard
 
-
-def workspace_keyboard():
+def token_keyboard():
     kb_list = [
         [
-            InlineKeyboardButton(text="Добавить", callback_data="add_workspace"),
-            InlineKeyboardButton(text="Изменить", callback_data="change_workspace"),
+            InlineKeyboardButton(
+                text="Рабочая область", callback_data="change_workspace"
+            )
         ],
-        [
-            InlineKeyboardButton(text="Удалить", callback_data="delete_workspace"),
-            InlineKeyboardButton(text="Вернуться", callback_data="home"),
-        ],
+        [InlineKeyboardButton(text="База данных", callback_data="change_database")],
+        [InlineKeyboardButton(text="Вернуться", callback_data="home")],
     ]
 
-    keyboard = InlineKeyboardMarkup(inline_keyboard=kb_list, resize_keyboard=True)
-
-    return keyboard
+    return InlineKeyboardMarkup(inline_keyboard=kb_list, resize_keyboard=True)
 
 
-def database_keyboard():
+def links_keyboard(links: List[str]):
     kb_list = [
-        [
-            InlineKeyboardButton(text="Добавить", callback_data="add_database"),
-            InlineKeyboardButton(text="Изменить", callback_data="change_database"),
-        ],
-        [
-            InlineKeyboardButton(text="Удалить", callback_data="delete_database"),
-            InlineKeyboardButton(text="Вернуться", callback_data="home"),
-        ],
+        [InlineKeyboardButton(text=link, callback_data=f"save_link_{index}")]
+        for index, link in enumerate(links)
     ]
 
-    keyboard = InlineKeyboardMarkup(inline_keyboard=kb_list, resize_keyboard=True)
-
-    return keyboard
+    return InlineKeyboardMarkup(inline_keyboard=kb_list, resize_keyboard=True)
