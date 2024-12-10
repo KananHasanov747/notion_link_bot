@@ -27,4 +27,6 @@ async def link_message_handler(message: types.Message, state: FSMContext):
         )
     else:
         await state.set_state(UserState.workspace_id)
-        await message.answer(text="Введите токен для рабочей области:")
+        await message.answer(
+            text="Введите токен для рабочей области:", reply_markup=cancel_keyboard()
+        )

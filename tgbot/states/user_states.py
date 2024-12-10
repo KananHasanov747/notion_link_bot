@@ -79,7 +79,7 @@ async def process_add_link(message: Message, state: FSMContext):
         return
 
     # Extract links from the text or forwarded message
-    links = re.findall(r"(https?://[^\s]+)", message.text)
+    links = re.findall(r"(https?://[^\s]+)", message.text or "")
     source = await detect_forward_source(message)
 
     if not links:
@@ -95,5 +95,6 @@ async def process_add_link(message: Message, state: FSMContext):
     await state.update_data(links=saved_links, sources=saved_sources)
 
     await message.answer(
-        "Выберите ссылку для сохранения:", reply_markup=links_keyboard(saved_links)
+        "Выберите ссылки для сохранения:",
+        reply_markup=links_keyboard(saved_links),
     )
