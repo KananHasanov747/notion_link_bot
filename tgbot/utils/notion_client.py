@@ -5,8 +5,9 @@ from tgbot.models import Link
 
 
 class NotionService:
-    def __init__(self, notion_token: str) -> None:
-        self.client = AsyncClient(auth=notion_token)
+    def __init__(self, workspace_id: str) -> None:
+        """Initiliazing the Notion Service by connecting to the workspace"""
+        self.client = AsyncClient(auth=workspace_id)
 
     async def add_link(
         self,
