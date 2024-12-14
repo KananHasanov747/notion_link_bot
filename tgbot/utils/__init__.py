@@ -18,16 +18,16 @@ async def user_exists(data: Message | CallbackQuery) -> User | None:
 
 def link_extraction(text: str) -> List[str | Any]:
     """Extracting link(s) from the message.text"""
-    # BUG: re.VERBOSE string doesn't work here accordingly
+
+    # try out the pattern in https://regex101.com
     link_pattern = r"""
-    \b              # anchors a match to a word boundary
-    (               # open parenthesis for grouping
-    ?:              # creates a non-capturing group
-    http[s]://      # checks whether 'http://' or 'https://' match the description
-    |               # designates alternation
-    www\.           # otherwise, checks if 'www.' matches the description 
-    )               # close parenthesis for grouping
-    \S+             # includes the afterwords
+    \b              # word boundary to start the match
+    (?:             # non-capturing group for URL protocols
+        http[s]://  # matches 'http://' or 'https://'
+        |           # OR
+        www\.       # matches 'www.'
+    )               # end of non-capturing group
+    \S+             # catches one or more non-whitespace characters (URL body)
     """
 
     return re.findall(

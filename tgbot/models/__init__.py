@@ -26,6 +26,7 @@ class Link(Base):
     url = Column(Text, nullable=False)
     title = Column(Text)
     category = Column(Text)
+    priority = Column(Text)
     source = Column(Text)
     timestamp = Column(DateTime, nullable=False, default=datetime.utcnow)
     database_id = Column(

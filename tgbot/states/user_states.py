@@ -9,7 +9,7 @@ from tgbot.database import session
 from tgbot.models import User
 from tgbot.keyboards import links_keyboard, start_keyboard
 from tgbot.utils import user_exists
-from tgbot.services.source_detection import detect_forward_source
+from tgbot.utils.source_detection import detect_forward_source
 
 
 router = Router(name=__name__)

@@ -4,10 +4,11 @@ from aiogram.utils.chat_action import ChatActionSender
 
 
 from tgbot.keyboards import start_keyboard, links_keyboard
+from tgbot.nlp.__init_ import categorize_and_prioritize
 from tgbot.states.all_states import WorkspaceStates, DatabaseStates
 from tgbot.utils import user_exists
-from tgbot.services.title_extractor import fetch_and_extract_title
-from tgbot.services.notion_client import NotionService
+from tgbot.utils.title_extractor import fetch_and_extract_title
+from tgbot.utils.notion_client import NotionService
 
 router = Router(name=__name__)
 
@@ -63,13 +64,18 @@ async def save_link_callback_handler(call: types.CallbackQuery, state: FSMContex
             workspace_id = str(user.workspace_id)
             database_id = str(user.database_id)
             title = str(await fetch_and_extract_title(selected_link)) or ""
+            categories_and_priorities = await categorize_and_prioritize(
+                selected_link, title
+            )
+            category, priority = categories_and_priorities.split("\n")
 
             notion = NotionService(workspace_id)
             await notion.add_link(
                 database_id=database_id,
                 url=selected_link,
                 title=title,
-                category="",
+                category=category,
+                priority=priority,
                 source=selected_source or "",
             )
 
