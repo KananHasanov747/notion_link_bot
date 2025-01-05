@@ -1,16 +1,20 @@
 import asyncio
 import logging
+import os
 
 import betterlogging as bl
 import orjson
 from aiogram import Bot, Dispatcher
-from aiogram.client.bot import DefaultBotProperties
+from aiogram.client.default import DefaultBotProperties
 from aiogram.client.session.aiohttp import AiohttpSession
 from aiogram.enums import ParseMode
 from aiogram.fsm.storage.memory import MemoryStorage
 
-from tgbot import handlers
+from tgbot import handlers, states
 from tgbot.data import config
+from tgbot.handlers.commands import set_commands
+from tgbot.models import Base
+from tgbot.database import engine
 
 
 def setup_logging():
@@ -18,6 +22,10 @@ def setup_logging():
     bl.basic_colorized_config(level=log_level)
     logger = logging.getLogger(__name__)
     logger.info("Starting bot")
+
+
+def setup_states(dp: Dispatcher) -> None:
+    dp.include_router(states.setup())
 
 
 def setup_handlers(dp: Dispatcher) -> None:
@@ -29,6 +37,7 @@ def setup_middlewares(dp: Dispatcher) -> None:
 
 
 async def setup_aiogram(dp: Dispatcher) -> None:
+    setup_states(dp)
     setup_handlers(dp)
     setup_middlewares(dp)
 
@@ -42,8 +51,16 @@ async def aiogram_on_shutdown_polling(dispatcher: Dispatcher, bot: Bot) -> None:
     await dispatcher.storage.close()
 
 
+async def setup_database():
+    async with engine.begin() as conn:
+        if os.path.exists("db.sqlite3"):
+            await conn.run_sync(Base.metadata.create_all)
+
+
 async def main():
     setup_logging()
+    await setup_database()
+
     session = AiohttpSession(
         json_loads=orjson.loads,
     )
@@ -51,8 +68,10 @@ async def main():
     bot = Bot(
         token=config.BOT_TOKEN,
         session=session,
-        default=DefaultBotProperties(parse_mode=ParseMode.HTML)
+        default=DefaultBotProperties(parse_mode=ParseMode.HTML),
     )
+
+    await set_commands(bot)
 
     storage = MemoryStorage()
 
