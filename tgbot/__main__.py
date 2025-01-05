@@ -1,6 +1,5 @@
 import asyncio
 import logging
-import os
 
 import betterlogging as bl
 import orjson
@@ -36,6 +35,12 @@ def setup_middlewares(dp: Dispatcher) -> None:
     pass
 
 
+async def setup_database():
+    """Connects to database if exists; otherwise, creates a new one"""
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+
 async def setup_aiogram(dp: Dispatcher) -> None:
     setup_states(dp)
     setup_handlers(dp)
@@ -43,6 +48,7 @@ async def setup_aiogram(dp: Dispatcher) -> None:
 
 
 async def aiogram_on_startup_polling(dispatcher: Dispatcher, bot: Bot) -> None:
+    await setup_database()
     await setup_aiogram(dispatcher)
 
 
@@ -51,15 +57,8 @@ async def aiogram_on_shutdown_polling(dispatcher: Dispatcher, bot: Bot) -> None:
     await dispatcher.storage.close()
 
 
-async def setup_database():
-    async with engine.begin() as conn:
-        if os.path.exists("db.sqlite3"):
-            await conn.run_sync(Base.metadata.create_all)
-
-
 async def main():
     setup_logging()
-    await setup_database()
 
     session = AiohttpSession(
         json_loads=orjson.loads,
